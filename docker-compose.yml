@@ -1,0 +1,36 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: gradmatch
+      POSTGRES_PASSWORD: gradmatch
+      POSTGRES_DB: gradmatch
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gradmatch"]
+      interval: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql+psycopg://gradmatch:gradmatch@db:5432/gradmatch
+      OPENALEX_API_KEY: ${OPENALEX_API_KEY:-}
+      EMBEDDING_BACKEND: ${EMBEDDING_BACKEND:-tfidf}
+      CORS_ORIGINS: http://localhost:8080
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build: ./frontend
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+
+volumes:
+  pgdata:
