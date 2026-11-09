@@ -1,0 +1,4 @@
+# Optional: local semantic embeddings (free, runs offline after the first model download).
+# Install with: pip install -r requirements-sbert.txt
+# Then set EMBEDDING_BACKEND=sbert in .env
+sentence-transformers>=3.0

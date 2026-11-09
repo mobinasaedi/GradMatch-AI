@@ -1,0 +1,21 @@
+[
+  {"key": "uoft", "name": "University of Toronto", "country_code": "CA", "country": "Canada", "website": "https://www.utoronto.ca", "domains": ["utoronto.ca"], "openalex_id": null},
+  {"key": "ubc", "name": "University of British Columbia", "country_code": "CA", "country": "Canada", "website": "https://www.ubc.ca", "domains": ["ubc.ca"], "openalex_id": null},
+  {"key": "uwaterloo", "name": "University of Waterloo", "country_code": "CA", "country": "Canada", "website": "https://uwaterloo.ca", "domains": ["uwaterloo.ca"], "openalex_id": null},
+
+  {"key": "uiuc", "name": "University of Illinois Urbana-Champaign", "country_code": "US", "country": "United States", "website": "https://illinois.edu", "domains": ["illinois.edu"], "openalex_id": null},
+  {"key": "ucsd", "name": "University of California San Diego", "country_code": "US", "country": "United States", "website": "https://ucsd.edu", "domains": ["ucsd.edu"], "openalex_id": null},
+  {"key": "umass", "name": "University of Massachusetts Amherst", "country_code": "US", "country": "United States", "website": "https://www.umass.edu", "domains": ["umass.edu"], "openalex_id": null},
+
+  {"key": "tum", "name": "Technical University of Munich", "country_code": "DE", "country": "Germany", "website": "https://www.tum.de", "domains": ["tum.de"], "openalex_id": null},
+  {"key": "saarland", "name": "Saarland University", "country_code": "DE", "country": "Germany", "website": "https://www.uni-saarland.de", "domains": ["uni-saarland.de"], "openalex_id": null},
+  {"key": "rwth", "name": "RWTH Aachen University", "country_code": "DE", "country": "Germany", "website": "https://www.rwth-aachen.de", "domains": ["rwth-aachen.de"], "openalex_id": null},
+
+  {"key": "tudelft", "name": "Delft University of Technology", "country_code": "NL", "country": "Netherlands", "website": "https://www.tudelft.nl", "domains": ["tudelft.nl"], "openalex_id": null},
+  {"key": "uva", "name": "University of Amsterdam", "country_code": "NL", "country": "Netherlands", "website": "https://www.uva.nl", "domains": ["uva.nl"], "openalex_id": null},
+  {"key": "tue", "name": "Eindhoven University of Technology", "country_code": "NL", "country": "Netherlands", "website": "https://www.tue.nl", "domains": ["tue.nl"], "openalex_id": null},
+
+  {"key": "paris-saclay", "name": "Université Paris-Saclay", "country_code": "FR", "country": "France", "website": "https://www.universite-paris-saclay.fr", "domains": ["universite-paris-saclay.fr"], "openalex_id": null},
+  {"key": "uga", "name": "Université Grenoble Alpes", "country_code": "FR", "country": "France", "website": "https://www.univ-grenoble-alpes.fr", "domains": ["univ-grenoble-alpes.fr"], "openalex_id": null},
+  {"key": "unistra", "name": "Université de Strasbourg", "country_code": "FR", "country": "France", "website": "https://www.unistra.fr", "domains": ["unistra.fr"], "openalex_id": null}
+]
