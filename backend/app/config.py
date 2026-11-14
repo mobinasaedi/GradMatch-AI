@@ -25,6 +25,21 @@ class Settings(BaseSettings):
     # Only publications from this year onwards are used for matching.
     openalex_from_year: int = 2021
 
+    # ------------------------------------------------------------------ demo / offline mode
+    # When no OpenAlex key is configured, the app still works end to end:
+    # candidates are ranked from the professors/publications shipped in data/raw.
+    demo_mode: bool = True
+    auto_seed_demo: bool = True
+    demo_data_dir: str = ""  # empty -> <repo>/data/raw
+    demo_max_candidates: int = 40
+
+    # ------------------------------------------- optional LLM for AI email drafts
+    # Any OpenAI-compatible endpoint works (OpenAI, DeepSeek, OpenRouter, Groq, Ollama).
+    llm_api_key: str | None = None
+    llm_base_url: str = "https://api.openai.com/v1"
+    llm_model: str = "gpt-4o-mini"
+    llm_timeout_seconds: float = 45.0
+
     # "tfidf" (offline baseline, no model download) or "sbert" (Sentence Transformers).
     embedding_backend: str = "tfidf"
     sbert_model: str = "sentence-transformers/all-MiniLM-L6-v2"

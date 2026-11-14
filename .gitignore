@@ -19,6 +19,9 @@ dist/
 # Data: keep structure, not bulk data
 data/raw/*.csv
 data/processed/*.csv
+# ...but the small demo sample is part of the product (offline demo mode), so keep it
+!data/raw/professors.csv
+!data/raw/publications.csv
 !data/evaluation/.gitkeep
 
 # OS / editor

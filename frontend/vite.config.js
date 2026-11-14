@@ -6,6 +6,12 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
-    proxy: { "/api": process.env.VITE_API_TARGET || "http://localhost:8000" },
+    host: "127.0.0.1",
+    proxy: { "/api": process.env.VITE_API_TARGET || "http://127.0.0.1:8000" },
+    // Editors that save atomically leave short-lived *.tmpdir folders next to the
+    // source file; watching them crashes chokidar on Windows (EBUSY).
+    watch: {
+      ignored: ["**/*.tmpdir/**", "**/*.tmp", "**/.*.tmpdir/**"],
+    },
   },
 });

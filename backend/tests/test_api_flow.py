@@ -26,9 +26,11 @@ def test_health(client):
 
 def test_countries_and_universities(client):
     codes = {c["code"] for c in client.get("/api/countries").json()}
-    assert codes == {"CA", "US", "DE", "NL", "FR"}
+    assert codes == {"CA", "US", "DE", "NL", "FR", "GB"}
     unis = client.get("/api/universities", params={"country": ["NL"]}).json()
     assert {u["key"] for u in unis} == {"tudelft", "uva", "tue"}
+    canada = {u["key"] for u in client.get("/api/universities", params={"country": ["CA"]}).json()}
+    assert {"uoft", "ubc", "uwaterloo", "mcgill", "ualberta"} <= canada
 
 
 def test_upload_rejects_bad_files(client):

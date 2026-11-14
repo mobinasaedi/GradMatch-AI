@@ -88,6 +88,8 @@ class Professor(Base):
     cited_by_count: Mapped[int] = mapped_column(Integer, default=0)
     topics: Mapped[list] = mapped_column(JSON, default=list)
     openalex_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    # "openalex" (live API) or "demo-dataset" (seeded from data/raw for offline demos)
+    data_source: Mapped[str] = mapped_column(String(24), default="openalex")
 
     # Email is only stored after the user confirms it from an official page.
     email: Mapped[str | None] = mapped_column(String(255), nullable=True)

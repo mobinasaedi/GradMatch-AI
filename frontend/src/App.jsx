@@ -1,118 +1,299 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { api } from "./api";
-import UploadStep from "./components/UploadStep.jsx";
-import ProfileEditor from "./components/ProfileEditor.jsx";
-import SearchStep from "./components/SearchStep.jsx";
-import Results from "./components/Results.jsx";
-import Tracker from "./components/Tracker.jsx";
-import AuthScreen from "./components/AuthScreen.jsx";
+import Landing from "./components/Landing";
+import Dashboard from "./pages/Dashboard";
+import Profile from "./pages/Profile";
+import Search from "./pages/Search";
+import Matches from "./pages/Matches";
+import Outreach from "./pages/Outreach";
+import Setup from "./pages/Setup";
+import { Icon, Toasts } from "./ui";
 
-const TABS = [
-  { id: "profile", label: "1. Resume & profile" },
-  { id: "search", label: "2. Countries & universities" },
-  { id: "results", label: "3. Top matches" },
-  { id: "tracker", label: "4. Email tracker" },
+const NAV = [
+  { id: "dashboard", label: "Dashboard", icon: "grid", title: "Your application, at a glance", hint: "Fit scores, progress and the state of your outreach." },
+  { id: "profile", label: "Resume & profile", icon: "file", title: "Resume and research profile", hint: "Upload once, then refine what the extractor found." },
+  { id: "search", label: "Find supervisors", icon: "compass", title: "Where do you want to study?", hint: "Pick countries and universities, then run the matcher." },
+  { id: "matches", label: "Shortlist", icon: "sparkles", title: "Your supervisor shortlist", hint: "Ranked by how closely recent publications overlap with your profile." },
+  { id: "outreach", label: "Outreach", icon: "mail", title: "Email tracker", hint: "Every professor, every status change, in one timeline." },
+  { id: "setup", label: "Keys & data", icon: "key", title: "API keys, database and dataset", hint: "What is configured, what is missing, and how to add it." },
 ];
+
 const STORAGE_KEY = "gradmatch.studentId";
 
+let toastCounter = 0;
+
 export default function App() {
-  const [tab, setTab] = useState("profile");
+  const [tab, setTab] = useState("dashboard");
   const [user, setUser] = useState(undefined);
   const [student, setStudent] = useState(null);
   const [run, setRun] = useState(null);
   const [health, setHealth] = useState(null);
+  const [meta, setMeta] = useState(null);
+  const [overview, setOverview] = useState(null);
+  const [runs, setRuns] = useState([]);
+  const [toasts, setToasts] = useState([]);
+  const [navOpen, setNavOpen] = useState(false);
 
-  useEffect(() => {
-    api.health().then(setHealth).catch(() => setHealth({ status: "unreachable" }));
-    api.authMe().then(async (current) => {
-      setUser(current);
-      const s = await api.myStudent();
-      if (s) {
-        setStudent(s);
-        localStorage.setItem(STORAGE_KEY, s.id);
-        await api.latestRecommendations(s.id).then(setRun).catch(() => {});
-      }
-    }).catch(() => setUser(null));
+  const notify = useCallback((message, tone = "info") => {
+    const id = ++toastCounter;
+    setToasts((list) => [...list, { id, message, tone }]);
+    setTimeout(() => setToasts((list) => list.filter((t) => t.id !== id)), 5200);
   }, []);
 
-  const onUploaded = (s) => {
-    localStorage.setItem(STORAGE_KEY, s.id);
-    setStudent(s);
-    setRun(null);
-  };
+  const loadStudentData = useCallback(async (current) => {
+    if (!current) {
+      setStudent(null);
+      setRun(null);
+      setOverview(null);
+      setRuns([]);
+      return;
+    }
+    setStudent(current);
+    localStorage.setItem(STORAGE_KEY, current.id);
+    const [latestRun, overviewData, runHistory] = await Promise.all([
+      api.latestRecommendations(current.id).catch(() => null),
+      api.overview(current.id).catch(() => null),
+      api.runs(current.id).catch(() => []),
+    ]);
+    setRun(latestRun);
+    setOverview(overviewData);
+    setRuns(runHistory || []);
+  }, []);
 
-  const reset = async () => {
-    if (!student) return;
-    if (!window.confirm("Delete your resume, profile, matches and tracking data?")) return;
-    await api.deleteStudent(student.id);
+  const refresh = useCallback(async () => {
+    const current = await api.myStudent().catch(() => null);
+    await loadStudentData(current);
+  }, [loadStudentData]);
+
+  const refreshMeta = useCallback(async () => {
+    const [stats, healthData] = await Promise.all([
+      api.metaStats().catch(() => null),
+      api.health().catch(() => ({ status: "unreachable" })),
+    ]);
+    setMeta(stats);
+    setHealth(healthData);
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      await refreshMeta();
+      try {
+        const current = await api.authMe();
+        setUser(current);
+        const currentStudent = await api.myStudent();
+        await loadStudentData(currentStudent);
+      } catch {
+        setUser(null);
+      }
+    })();
+  }, [loadStudentData, refreshMeta]);
+
+  const signOut = async () => {
+    await api.logout().catch(() => {});
     localStorage.removeItem(STORAGE_KEY);
+    setUser(null);
     setStudent(null);
     setRun(null);
-    setTab("profile");
+    setOverview(null);
+    setTab("dashboard");
   };
 
-  const refreshRun = useCallback(() => {
-    if (student) api.latestRecommendations(student.id).then(setRun).catch(() => {});
-  }, [student]);
+  const onAuthenticated = async (signedIn) => {
+    setUser(signedIn);
+    const currentStudent = await api.myStudent().catch(() => null);
+    await loadStudentData(currentStudent);
+    await refreshMeta();
+  };
 
-  if (user === undefined) return <main className="auth-wrap"><section className="card">Loading your secure workspace…</section></main>;
-  if (!user) return <AuthScreen onAuthenticated={async (signedIn) => { setUser(signedIn); const s = await api.myStudent(); if (s) { setStudent(s); localStorage.setItem(STORAGE_KEY, s.id); await api.latestRecommendations(s.id).then(setRun).catch(() => {}); } }} />;
+  const current = useMemo(() => NAV.find((item) => item.id === tab) || NAV[0], [tab]);
+
+  const navigate = (next) => {
+    setTab(next);
+    setNavOpen(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  if (user === undefined) {
+    return (
+      <div className="boot">
+        <span className="brand-mark brand-mark-lg">
+          <Icon name="sparkles" size={22} />
+        </span>
+        <p>Loading your workspace…</p>
+      </div>
+    );
+  }
+
+  if (!user) return <Landing onAuthenticated={onAuthenticated} />;
 
   return (
-    <div className="app">
-      <header>
-        <h1>GradMatch AI</h1>
-        <p className="subtitle">Find supervisors whose research matches your resume, then track your outreach.</p>
-        <div className="account-bar"><span>{user.email}</span><button onClick={async () => { await api.logout(); localStorage.removeItem(STORAGE_KEY); setUser(null); setStudent(null); setRun(null); }}>Sign out</button></div>
+    <div className="shell">
+      <div className="shell-glow" />
+      <aside className={`sidebar ${navOpen ? "sidebar-open" : ""}`}>
+        <div className="brand">
+          <span className="brand-mark">
+            <Icon name="sparkles" size={18} />
+          </span>
+          <span>
+            GradMatch <em>AI</em>
+          </span>
+        </div>
+
+        <nav className="nav">
+          {NAV.map((item) => (
+            <button
+              key={item.id}
+              className={`nav-item ${tab === item.id ? "active" : ""}`}
+              onClick={() => navigate(item.id)}
+            >
+              <Icon name={item.icon} size={17} />
+              <span>{item.label}</span>
+              {item.id === "matches" && run?.results?.length ? (
+                <span className="nav-count">{run.results.length}</span>
+              ) : null}
+            </button>
+          ))}
+        </nav>
+
+        <div className="sidebar-foot">
+          <div className="dataset-card">
+            <div className="dataset-head">
+              <Icon name="database" size={15} />
+              <span>{meta?.database_dialect || "sqlite"}</span>
+            </div>
+            <p>
+              <strong>{meta?.counts?.professors ?? "—"}</strong> professors ·{" "}
+              <strong>{meta?.counts?.publications ?? "—"}</strong> papers
+            </p>
+            <p className="tiny">
+              {health?.openalex_key_configured ? "Live OpenAlex search" : "Bundled dataset · no key required"}
+            </p>
+          </div>
+          <div className="user-row">
+            <span className="avatar avatar-sm">{(user.email || "?").slice(0, 1).toUpperCase()}</span>
+            <span className="user-email" title={user.email}>
+              {user.email}
+            </span>
+            <button className="icon-btn" onClick={signOut} aria-label="Sign out" title="Sign out">
+              <Icon name="logout" size={16} />
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <div className="main">
+        <header className="topbar">
+          <button className="icon-btn nav-toggle" onClick={() => setNavOpen((v) => !v)} aria-label="Menu">
+            <Icon name={navOpen ? "x" : "filter"} size={18} />
+          </button>
+          <div className="topbar-title">
+            <h1>{current.title}</h1>
+            <p>{current.hint}</p>
+          </div>
+          <div className="topbar-tags">
+            {run ? (
+              <span className={`pill ${run.data_source === "demo-dataset" ? "pill-amber" : "pill-emerald"}`}>
+                <span className="dot" />
+                {run.data_source === "demo-dataset" ? "Demo dataset" : "Live OpenAlex"}
+              </span>
+            ) : null}
+            <span className="pill pill-muted">
+              <Icon name="layers" size={13} /> v{health?.version || "0.2.0"}
+            </span>
+          </div>
+        </header>
+
         {health?.status === "unreachable" && (
-          <div className="banner error">Backend is not reachable. Start it with <code>make backend</code>.</div>
-        )}
-        {health?.status === "ok" && !health.openalex_key_configured && (
-          <div className="banner warn">
-            No <code>OPENALEX_API_KEY</code> configured: searches will likely fail. Get a free key at openalex.org/settings/api.
+          <div className="banner banner-error">
+            <Icon name="alert" size={16} /> The API is not reachable. Start the backend with{" "}
+            <code>uvicorn app.main:app --port 8000</code>.
           </div>
         )}
-      </header>
 
-      <nav>
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            className={tab === t.id ? "tab active" : "tab"}
-            disabled={t.id !== "profile" && !student}
-            onClick={() => setTab(t.id)}
-          >
-            {t.label}
-          </button>
-        ))}
-      </nav>
+        <main className="content">
+          {tab === "dashboard" && (
+            <Dashboard
+              student={student}
+              run={run}
+              overview={overview}
+              runs={runs}
+              meta={meta}
+              onNavigate={navigate}
+              onOpenRun={async (runId) => {
+                const data = await api.getRun(student.id, runId);
+                setRun(data);
+                navigate("matches");
+              }}
+            />
+          )}
+          {tab === "profile" && (
+            <Profile
+              student={student}
+              onChanged={async (updated) => {
+                if (updated) {
+                  await loadStudentData(updated);
+                } else {
+                  await refresh();
+                }
+                await refreshMeta();
+              }}
+              notify={notify}
+              onNavigate={navigate}
+            />
+          )}
+          {tab === "search" && (
+            <Search
+              student={student}
+              meta={meta}
+              history={runs}
+              notify={notify}
+              onNavigate={navigate}
+              onDone={async (newRun) => {
+                setRun(newRun);
+                await refresh();
+                navigate("matches");
+              }}
+            />
+          )}
+          {tab === "matches" && (
+            <Matches
+              run={run}
+              student={student}
+              meta={meta}
+              notify={notify}
+              onChanged={refresh}
+              onNavigate={navigate}
+            />
+          )}
+          {tab === "outreach" && (
+            <Outreach student={student} notify={notify} onNavigate={navigate} />
+          )}
+          {tab === "setup" && (
+            <Setup
+              meta={meta}
+              health={health}
+              notify={notify}
+              onSeed={async () => {
+                const report = await api.seedDemo();
+                await refreshMeta();
+                notify(
+                  report.professors_inserted
+                    ? `Imported ${report.professors_inserted} professors and ${report.publications_inserted} publications.`
+                    : "Dataset already loaded — nothing new to import.",
+                  "success",
+                );
+              }}
+            />
+          )}
+        </main>
 
-      <main>
-        {tab === "profile" && (
-          <>
-            <UploadStep onUploaded={onUploaded} />
-            {student && (
-              <ProfileEditor student={student} onSaved={setStudent} onNext={() => setTab("search")} onDelete={reset} />
-            )}
-          </>
-        )}
-        {tab === "search" && student && (
-          <SearchStep
-            student={student}
-            onDone={(r) => {
-              setRun(r);
-              setTab("results");
-            }}
-          />
-        )}
-        {tab === "results" && <Results run={run} onChanged={refreshRun} onTrack={() => setTab("tracker")} />}
-        {tab === "tracker" && student && <Tracker student={student} />}
-      </main>
+        <footer className="app-footer">
+          Matches are research-similarity suggestions from academic metadata, not predictions of admission or
+          funding. Always verify affiliation and openings on the official university page.
+        </footer>
+      </div>
 
-      <footer>
-        Matches are research-similarity suggestions from OpenAlex data, not admission or funding predictions. Always verify
-        a professor's affiliation and openings on the official university page.
-      </footer>
+      <Toasts items={toasts} onDismiss={(id) => setToasts((list) => list.filter((t) => t.id !== id))} />
     </div>
   );
 }

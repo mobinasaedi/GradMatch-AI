@@ -4,18 +4,35 @@
 frontend (React, Vite, Recharts)
    |  /api/*
 backend (FastAPI)
-   routers/        HTTP layer: students, universities, recommendations, professors, outreach
+   routers/        HTTP layer: meta, students, analytics, universities, recommendations,
+                   professors, outreach
    services/       business logic (no HTTP types)
       resume_parser      PDF/DOCX -> text
       profile_extractor  text -> profile (sections + taxonomy)
       openalex           API client (retries, api_key, batching)
       discovery          institution -> candidate professors + papers (cached in DB)
+      demo               bundled CSV dataset -> DB, local candidate ranking
       matcher            TF-IDF / Sentence-Transformers ranking + explanations
+      scoring            raw similarity -> 0-100 display fit (monotone, presentation only)
+      llm                optional OpenAI-compatible email rewriting
       email_finder       official-page email lookup (SSRF-safe)
       draft              deterministic email template
    models.py       SQLAlchemy tables
    schemas.py      Pydantic request/response models
+   db.py           engine, session, additive migrations
 ```
+
+## Data sources
+
+Two interchangeable sources feed the same pipeline:
+
+| Source | When | What it provides |
+|---|---|---|
+| OpenAlex (live) | `OPENALEX_API_KEY` is set | Any institution in `universities.json`, ranked by the student's topics |
+| Bundled dataset | no key, or the live call fails and `DEMO_MODE=true` | 64 professors / 306 papers in `data/raw`, seeded on first start |
+
+The chosen source is stored per run (`params.data_source`) and shown in the UI, so a shortlist is
+never ambiguous about where the candidates came from.
 
 ## Recommendation flow
 
@@ -29,6 +46,9 @@ backend (FastAPI)
    6. Build a student text and one text per professor (topics + titles + keywords + abstracts of up to 8 recent papers).
    7. Rank (see below), persist the run, create tracking rows, return the top K.
 
+   In demo mode step 1–5 are replaced by `demo.local_candidates` (keyword overlap over the seeded
+   rows); steps 6–7 are byte-for-byte the same code path.
+
 ## Scoring
 
 ```
@@ -39,7 +59,10 @@ tfidf backend : score = semantic                      (offline baseline)
 sbert backend : score = alpha * semantic + (1-alpha) * lexical     (alpha = HYBRID_ALPHA)
 ```
 
-Scores are shown x100. They are similarity values, not probabilities, and are only comparable within one run.
+Raw scores are small cosine values (0.02–0.15 is normal for short queries against long documents),
+so the API also returns a **fit** field: a monotone rescale of the run's scores onto a 35–97 band.
+It never changes the order; it exists so the UI can show "82" instead of "0.04". The Method panel in
+the shortlist states this to the user.
 
 ## Explanations (faithful by construction)
 

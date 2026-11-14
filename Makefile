@@ -1,4 +1,4 @@
-.PHONY: setup backend frontend test lint build clean
+.PHONY: setup backend frontend test lint build clean demo-user
 
 PY ?= python3
 
@@ -11,6 +11,9 @@ backend:
 
 frontend:
 	cd frontend && npm run dev
+
+demo-user:
+	cd backend && .venv/bin/python ../scripts/seed_demo_user.py
 
 test:
 	cd backend && .venv/bin/python -m pytest

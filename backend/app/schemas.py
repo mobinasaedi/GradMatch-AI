@@ -87,6 +87,10 @@ class RecommendationOut(BaseModel):
     score: float
     semantic_score: float
     lexical_score: float
+    # 0-100 fit within this candidate pool (display only; the ranking uses `score`)
+    fit: float = 0
+    fit_semantic: float = 0
+    fit_lexical: float = 0
     professor: ProfessorOut
     explanation: ExplanationOut
     outreach_id: int | None = None
@@ -97,10 +101,83 @@ class RecommendationRunOut(BaseModel):
     run_id: int
     student_id: int
     backend: str
+    data_source: str = "openalex"
     created_at: datetime
     params: dict
     warnings: list[str] = []
     results: list[RecommendationOut]
+
+
+class RunSummaryOut(BaseModel):
+    run_id: int
+    created_at: datetime
+    backend: str
+    data_source: str = "openalex"
+    results_count: int
+    avg_score: float
+    best_score: float
+    avg_fit: float = 0
+    best_fit: float = 0
+    university_names: list[str] = []
+    top_k: int = 10
+
+
+
+class LabelCount(BaseModel):
+    label: str
+    count: int
+
+
+class ActivityPoint(BaseModel):
+    date: str
+    events: int
+    replies: int
+
+
+class StudentOverviewOut(BaseModel):
+    matches: int
+    avg_fit: float
+    best_fit: float
+    runs: int
+    contacted: int
+    replies: int
+    reply_rate: float
+    funnel: dict[str, int]
+    score_buckets: list[LabelCount]
+    top_topics: list[LabelCount]
+    universities: list[LabelCount]
+    activity: list[ActivityPoint]
+    profile_completeness: int
+    latest_run_at: datetime | None = None
+
+
+class TableStat(BaseModel):
+    table: str
+    rows: int
+
+
+class IntegrationStatus(BaseModel):
+    key: str
+    name: str
+    required: bool
+    configured: bool
+    purpose: str
+    signup_url: str
+    env_var: str
+    docs_hint: str
+
+
+class MetaStatsOut(BaseModel):
+    app_version: str
+    database_dialect: str
+    database_url: str
+    tables: list[TableStat]
+    counts: dict[str, int]
+    demo_mode: bool
+    demo_seeded: bool
+    demo_data_dir: str
+    dataset_coverage: dict[str, dict[str, int]]
+    integrations: list[IntegrationStatus]
 
 
 class EmailLookupRequest(BaseModel):
@@ -156,6 +233,7 @@ class OutreachStats(BaseModel):
 class DraftOut(BaseModel):
     subject: str
     body: str
+    engine: str = "template"
     note: str = "Template draft, not AI-generated. Review and edit before sending from your own mail client."
 
 

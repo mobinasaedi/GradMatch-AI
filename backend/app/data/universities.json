@@ -2,6 +2,11 @@
   {"key": "uoft", "name": "University of Toronto", "country_code": "CA", "country": "Canada", "website": "https://www.utoronto.ca", "domains": ["utoronto.ca"], "openalex_id": null},
   {"key": "ubc", "name": "University of British Columbia", "country_code": "CA", "country": "Canada", "website": "https://www.ubc.ca", "domains": ["ubc.ca"], "openalex_id": null},
   {"key": "uwaterloo", "name": "University of Waterloo", "country_code": "CA", "country": "Canada", "website": "https://uwaterloo.ca", "domains": ["uwaterloo.ca"], "openalex_id": null},
+  {"key": "mcgill", "name": "McGill University", "country_code": "CA", "country": "Canada", "website": "https://www.mcgill.ca", "domains": ["mcgill.ca"], "openalex_id": null},
+  {"key": "ualberta", "name": "University of Alberta", "country_code": "CA", "country": "Canada", "website": "https://www.ualberta.ca", "domains": ["ualberta.ca"], "openalex_id": null},
+  {"key": "mcmaster", "name": "McMaster University", "country_code": "CA", "country": "Canada", "website": "https://www.mcmaster.ca", "domains": ["mcmaster.ca"], "openalex_id": null},
+  {"key": "queensu", "name": "Queen's University", "country_code": "CA", "country": "Canada", "website": "https://www.queensu.ca", "domains": ["queensu.ca"], "openalex_id": null},
+  {"key": "sfu", "name": "Simon Fraser University", "country_code": "CA", "country": "Canada", "website": "https://www.sfu.ca", "domains": ["sfu.ca"], "openalex_id": null},
 
   {"key": "uiuc", "name": "University of Illinois Urbana-Champaign", "country_code": "US", "country": "United States", "website": "https://illinois.edu", "domains": ["illinois.edu"], "openalex_id": null},
   {"key": "ucsd", "name": "University of California San Diego", "country_code": "US", "country": "United States", "website": "https://ucsd.edu", "domains": ["ucsd.edu"], "openalex_id": null},
@@ -17,5 +22,11 @@
 
   {"key": "paris-saclay", "name": "Université Paris-Saclay", "country_code": "FR", "country": "France", "website": "https://www.universite-paris-saclay.fr", "domains": ["universite-paris-saclay.fr"], "openalex_id": null},
   {"key": "uga", "name": "Université Grenoble Alpes", "country_code": "FR", "country": "France", "website": "https://www.univ-grenoble-alpes.fr", "domains": ["univ-grenoble-alpes.fr"], "openalex_id": null},
-  {"key": "unistra", "name": "Université de Strasbourg", "country_code": "FR", "country": "France", "website": "https://www.unistra.fr", "domains": ["unistra.fr"], "openalex_id": null}
+  {"key": "unistra", "name": "Université de Strasbourg", "country_code": "FR", "country": "France", "website": "https://www.unistra.fr", "domains": ["unistra.fr"], "openalex_id": null},
+
+  {"key": "oxford", "name": "University of Oxford", "country_code": "GB", "country": "United Kingdom", "website": "https://www.ox.ac.uk", "domains": ["ox.ac.uk"], "openalex_id": null},
+  {"key": "cambridge", "name": "University of Cambridge", "country_code": "GB", "country": "United Kingdom", "website": "https://www.cam.ac.uk", "domains": ["cam.ac.uk"], "openalex_id": null},
+  {"key": "imperial", "name": "Imperial College London", "country_code": "GB", "country": "United Kingdom", "website": "https://www.imperial.ac.uk", "domains": ["imperial.ac.uk"], "openalex_id": null},
+  {"key": "ucl", "name": "University College London", "country_code": "GB", "country": "United Kingdom", "website": "https://www.ucl.ac.uk", "domains": ["ucl.ac.uk"], "openalex_id": null},
+  {"key": "edinburgh", "name": "University of Edinburgh", "country_code": "GB", "country": "United Kingdom", "website": "https://www.ed.ac.uk", "domains": ["ed.ac.uk"], "openalex_id": null}
 ]
